@@ -16,13 +16,11 @@ class Logen extends StatefulWidget {
 
 final _authGoogle = FirebaseAuth.instance;
 
-Future<UserCredential> signInWithGoogle() async {
+Future<void> signInWithGoogle() async {
   GoogleAuthProvider googleProvider = GoogleAuthProvider();
   googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
   googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
-  _authGoogle.signInWithAuthProvider(googleProvider);
-  print("output  ======>$_authGoogle");
-  return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+  return await FirebaseAuth.instance.signInWithRedirect(googleProvider);
 }
 
 class _LogenState extends State<Logen> {
