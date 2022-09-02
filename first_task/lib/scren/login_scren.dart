@@ -1,5 +1,5 @@
 // ignore: implementation_imports
-// ignore_for_file: prefer_const_literals_to_create_immutables, avoid_unnecessary_containers, sized_box_for_whitespace, prefer_const_constructors, must_be_immutable, avoid_print, unused_import, unused_local_variable, override_on_non_overriding_member, depend_on_referenced_packages, use_build_context_synchronously, unused_field, unused_element, prefer_final_fields, must_call_super, prefer_const_constructors_in_immutables, no_leading_underscores_for_local_identifiers, body_might_complete_normally_nullable, use_rethrow_when_possible, unnecessary_null_comparison, non_constant_identifier_names
+// ignore_for_file: prefer_const_literals_to_create_immutables, avoid_unnecessary_containers, sized_box_for_whitespace, prefer_const_constructors, must_be_immutable, avoid_print, unused_import, unused_local_variable, override_on_non_overriding_member, depend_on_referenced_packages, use_build_context_synchronously, unused_field, unused_element, prefer_final_fields, must_call_super, prefer_const_constructors_in_immutables, no_leading_underscores_for_local_identifiers, body_might_complete_normally_nullable, use_rethrow_when_possible, unnecessary_null_comparison, non_constant_identifier_names, use_key_in_widget_constructors
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -8,22 +8,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class Logen extends StatefulWidget {
-  Logen({super.key});
+class Login extends StatefulWidget {
+  Login({super.key});
   @override
-  State<Logen> createState() => _LogenState();
+  State<Login> createState() => _LoginState();
 }
 
 final _authGoogle = FirebaseAuth.instance;
+GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-Future<void> signInWithGoogle() async {
+Future<UserCredential> signInWithGoogle() async {
   GoogleAuthProvider googleProvider = GoogleAuthProvider();
   googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
   googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
-  return await FirebaseAuth.instance.signInWithRedirect(googleProvider);
+  return await FirebaseAuth.instance.signInWithPopup(googleProvider);
 }
 
-class _LogenState extends State<Logen> {
+class _LoginState extends State<Login> {
   late String email;
   late String password;
   final _authEmail = FirebaseAuth.instance;
@@ -111,11 +112,18 @@ class _LogenState extends State<Logen> {
                                 await _authEmail.createUserWithEmailAndPassword(
                                     email: email, password: password);
                             print(neuUzar.user);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => TaskScren()),
-                            );
+                            FirebaseAuth.instance
+                                .authStateChanges()
+                                .listen((User? user) {
+                              if (user != null) {
+                                print(user.email);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => TaskScren()),
+                                );
+                              }
+                            });
                           } catch (e) {
                             print(e);
                           }
@@ -143,11 +151,18 @@ class _LogenState extends State<Logen> {
                             final login =
                                 await _authEmail.signInWithEmailAndPassword(
                                     email: email, password: password);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => TaskScren()),
-                            );
+                            FirebaseAuth.instance
+                                .authStateChanges()
+                                .listen((User? user) {
+                              if (user != null) {
+                                print(user.email);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => TaskScren()),
+                                );
+                              }
+                            });
                             print(login.user);
                           } catch (e) {
                             print(e);
@@ -174,13 +189,21 @@ class _LogenState extends State<Logen> {
                       child: MaterialButton(
                         onPressed: () async {
                           setState(() {
-                            signInWithGoogle();
                             try {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => TaskScren()),
-                              );
+                              signInWithGoogle();
+                              FirebaseAuth.instance
+                                  .authStateChanges()
+                                  .listen((User? user) async {
+                                if (user != null) {
+                                  await user.sendEmailVerification();
+                                  print(user.email);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => TaskScren()),
+                                  );
+                                }
+                              });
                             } on Exception catch (e) {
                               print(e);
                             }
